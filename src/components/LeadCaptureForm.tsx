@@ -1,24 +1,41 @@
-import { useState, useEffect } from 'react';
-import { Mail, User, CheckCircle, Building2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { validateLeadForm, ValidationError } from '@/lib/validation';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from "react";
+import { Mail, User, CheckCircle, Building2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { validateLeadForm, ValidationError } from "@/lib/validation";
+import { supabase } from "@/integrations/supabase/client";
 
 export const LeadCaptureForm = () => {
-  const [formData, setFormData] = useState({ name: '', email: '', industry: '' });
-  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    industry: "",
+  });
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>(
+    []
+  );
   const [submitted, setSubmitted] = useState(false);
   const [leads, setLeads] = useState<
-    Array<{ name: string; email: string; industry: string; submitted_at: string }>
+    Array<{
+      name: string;
+      email: string;
+      industry: string;
+      submitted_at: string;
+    }>
   >([]);
 
   useEffect(() => {
     setSubmitted(false);
   }, []);
   const getFieldError = (field: string) => {
-    return validationErrors.find(error => error.field === field)?.message;
+    return validationErrors.find((error) => error.field === field)?.message;
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,60 +43,49 @@ export const LeadCaptureForm = () => {
     setValidationErrors(errors);
 
     if (errors.length === 0) {
-      // Save to database
-try {
-  const { error: emailError } = await supabase.functions.invoke('send-confirmation', {
-    body: {
-      name: formData.name,
-      email: formData.email,
-      industry: formData.industry,
-    },
-  });
-
-  if (emailError) {
-    console.error('Error sending confirmation email:', emailError);
-  } else {
-    console.log('Confirmation email sent successfully');
-  }
-} catch (emailError) {
-  console.error('Error calling email function:', emailError);
-}
-
       // Send confirmation email
       try {
-        const { error: emailError } = await supabase.functions.invoke('send-confirmation', {
-          body: {
-            name: formData.name,
-            email: formData.email,
-            industry: formData.industry,
-          },
-        });
+        const { error: emailError, data } = await supabase.functions.invoke(
+          "send-confirmation",
+          {
+            body: {
+              name: formData.name,
+              email: formData.email,
+              industry: formData.industry,
+            },
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (emailError) {
-          console.error('Error sending confirmation email:', emailError);
+          console.error("Error sending confirmation email:", emailError);
         } else {
-          console.log('Confirmation email sent successfully');
+          console.log("Confirmation email sent successfully");
         }
       } catch (emailError) {
-        console.error('Error calling email function:', emailError);
+        console.error("Error calling email function:", emailError);
       }
 
       const lead = {
         name: formData.name,
         email: formData.email,
         industry: formData.industry,
-        submitted_at: new Date().toISOString(), 
+        submitted_at: new Date().toISOString(),
       };
       setLeads([...leads, lead]);
       setSubmitted(true);
-      setFormData({ name: '', email: '', industry: '' });
+      setFormData({ name: "", email: "", industry: "" });
     }
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (validationErrors.some(error => error.field === field)) {
-      setValidationErrors(prev => prev.filter(error => error.field !== field));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (validationErrors.some((error) => error.field === field)) {
+      setValidationErrors((prev) =>
+        prev.filter((error) => error.field !== field)
+      );
     }
   };
 
@@ -93,7 +99,9 @@ try {
             </div>
           </div>
 
-          <h2 className="text-3xl font-bold text-foreground mb-3">Welcome aboard! 🎉</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-3">
+            Welcome aboard! 🎉
+          </h2>
 
           <p className="text-muted-foreground mb-2">
             Thanks for joining! We'll be in touch soon with updates.
@@ -108,8 +116,8 @@ try {
               <p className="text-sm text-foreground">
                 💡 <strong>What's next?</strong>
                 <br />
-                We'll send you exclusive updates, early access, and behind-the-scenes content as we
-                build something amazing.
+                We'll send you exclusive updates, early access, and
+                behind-the-scenes content as we build something amazing.
               </p>
             </div>
 
@@ -140,8 +148,12 @@ try {
           <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow">
             <Mail className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">Join Our Community</h2>
-          <p className="text-muted-foreground">Be the first to know when we launch</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
+            Join Our Community
+          </h2>
+          <p className="text-muted-foreground">
+            Be the first to know when we launch
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -152,14 +164,20 @@ try {
                 type="text"
                 placeholder="Your name"
                 value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
+                onChange={(e) => handleInputChange("name", e.target.value)}
                 className={`pl-10 h-12 bg-input border-border text-foreground placeholder:text-muted-foreground transition-smooth
-                  ${getFieldError('name') ? 'border-destructive' : 'focus:border-accent focus:shadow-glow'}
+                  ${
+                    getFieldError("name")
+                      ? "border-destructive"
+                      : "focus:border-accent focus:shadow-glow"
+                  }
                 `}
               />
             </div>
-            {getFieldError('name') && (
-              <p className="text-destructive text-sm animate-fade-in">{getFieldError('name')}</p>
+            {getFieldError("name") && (
+              <p className="text-destructive text-sm animate-fade-in">
+                {getFieldError("name")}
+              </p>
             )}
           </div>
 
@@ -170,24 +188,39 @@ try {
                 type="email"
                 placeholder="your@email.com"
                 value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
+                onChange={(e) => handleInputChange("email", e.target.value)}
                 className={`pl-10 h-12 bg-input border-border text-foreground placeholder:text-muted-foreground transition-smooth
-                  ${getFieldError('email') ? 'border-destructive' : 'focus:border-accent focus:shadow-glow'}
+                  ${
+                    getFieldError("email")
+                      ? "border-destructive"
+                      : "focus:border-accent focus:shadow-glow"
+                  }
                 `}
               />
             </div>
-            {getFieldError('email') && (
-              <p className="text-destructive text-sm animate-fade-in">{getFieldError('email')}</p>
+            {getFieldError("email") && (
+              <p className="text-destructive text-sm animate-fade-in">
+                {getFieldError("email")}
+              </p>
             )}
           </div>
 
           <div className="space-y-2">
             <div className="relative">
               <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
-              <Select value={formData.industry} onValueChange={(value) => handleInputChange('industry', value)}>
-                <SelectTrigger className={`pl-10 h-12 bg-input border-border text-foreground transition-smooth
-                  ${getFieldError('industry') ? 'border-destructive' : 'focus:border-accent focus:shadow-glow'}
-                `}>
+              <Select
+                value={formData.industry}
+                onValueChange={(value) => handleInputChange("industry", value)}
+              >
+                <SelectTrigger
+                  className={`pl-10 h-12 bg-input border-border text-foreground transition-smooth
+                  ${
+                    getFieldError("industry")
+                      ? "border-destructive"
+                      : "focus:border-accent focus:shadow-glow"
+                  }
+                `}
+                >
                   <SelectValue placeholder="Select your industry" />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,8 +235,10 @@ try {
                 </SelectContent>
               </Select>
             </div>
-            {getFieldError('industry') && (
-              <p className="text-destructive text-sm animate-fade-in">{getFieldError('industry')}</p>
+            {getFieldError("industry") && (
+              <p className="text-destructive text-sm animate-fade-in">
+                {getFieldError("industry")}
+              </p>
             )}
           </div>
 
