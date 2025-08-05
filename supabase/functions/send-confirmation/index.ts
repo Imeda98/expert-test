@@ -30,7 +30,7 @@ const generatePersonalizedContent = async (
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -43,7 +43,7 @@ const generatePersonalizedContent = async (
           },
           {
             role: "user",
-            content: `Create a personalized welcome email for ${name} who works in the ${industry} industry.`,
+            content: `Create a personalized welcome email for ${name} who works in the ${industry} industry. Focus on how this innovation community will help them revolutionize their specific industry. Be enthusiastic and inspiring. Include industry-specific opportunities and innovations they could be part of.`,
           },
         ],
         temperature: 0.8,
@@ -150,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error("Top-level handler error:", error);
+    console.error("Error in send-confirmation function:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Unknown error" }),
       {
